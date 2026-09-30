@@ -1,0 +1,26 @@
+services:
+  allergen-api:
+    build: .
+    image: allergen-traceability:1.0
+    container_name: allergen-api
+    ports:
+      - "8000:8000"
+    environment:
+      # 首次启动为空库写入演示数据（RM-PEANUT/RM-MILK/RM-UNKNOWN + 两次共线加工）
+      SEED_DEMO: "1"
+      # 可选过敏原白名单，留空不限制：
+      ALLOWED_ALLERGENS: ""
+      DB_PATH: /data/allergens.db
+      PORT: "8000"
+    volumes:
+      - allergen-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  allergen-data:
